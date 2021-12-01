@@ -9,7 +9,7 @@ fs.readFile(__dirname + "/input.txt", (error, data) => {
     throw error;
   }
   const input = data.toString();
-  const result = main(input);
+  const result = part2(input);
 
   console.log(result);
 });
@@ -17,18 +17,38 @@ fs.readFile(__dirname + "/input.txt", (error, data) => {
 /**
  * Main function for the challenge
  */
-const main = (input) => {
-  const depths = input.split(/\r?\n/);
+const part1 = (input) => {
+  const depths = input.split(/\r?\n/).map(Number);;
   let prevDepth = Number.MAX_SAFE_INTEGER;
   let numIncreases = 0;
 
   for (let depth of depths) {
-    depth = parseInt(depth);
+    depth = depth;
 
     if (depth > prevDepth) {
       numIncreases++;
     }
     prevDepth = depth;
+  }
+
+  return numIncreases;
+}
+
+/**
+ * Main function for the challenge
+ */
+const part2 = (input) => {
+  const depths = input.split(/\r?\n/).map(Number);
+  let prevDepth = depths[0] + depths[1] + depths[2];
+  let numIncreases = 0;
+
+  for (let i = 3; i < depths.length; i++) {
+    const curDepth = prevDepth - depths[i-3] + depths[i];
+    if (curDepth > prevDepth) {
+      numIncreases++;
+    }
+
+    prevDepth = curDepth;
   }
 
   return numIncreases;
