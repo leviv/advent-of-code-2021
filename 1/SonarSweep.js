@@ -5,7 +5,7 @@ const fs = require("fs");
  * __dirname means relative to script. Use "./data.txt" if you want it relative to execution path.
  */
 fs.readFile(__dirname + "/input.txt", (error, data) => {
-  if(error) {
+  if (error) {
     throw error;
   }
   const input = data.toString();
@@ -18,7 +18,7 @@ fs.readFile(__dirname + "/input.txt", (error, data) => {
  * Main function for the challenge
  */
 const part1 = (input) => {
-  const depths = input.split(/\r?\n/).map(Number);;
+  const depths = input.split(/\r?\n/).map(Number);
   let prevDepth = Number.MAX_SAFE_INTEGER;
   let numIncreases = 0;
 
@@ -32,7 +32,7 @@ const part1 = (input) => {
   }
 
   return numIncreases;
-}
+};
 
 /**
  * Main function for the challenge
@@ -43,7 +43,7 @@ const part2 = (input) => {
   let numIncreases = 0;
 
   for (let i = 3; i < depths.length; i++) {
-    const curDepth = prevDepth - depths[i-3] + depths[i];
+    const curDepth = prevDepth - depths[i - 3] + depths[i];
     if (curDepth > prevDepth) {
       numIncreases++;
     }
@@ -52,4 +52,4 @@ const part2 = (input) => {
   }
 
   return numIncreases;
-}
+};
