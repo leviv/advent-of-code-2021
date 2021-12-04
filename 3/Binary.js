@@ -38,6 +38,7 @@ const part1 = (input) => {
     epsilon += percentOne <= 0.5 ? "1" : 0;
   }
 
+  // Parse binary to decimal
   gamma = parseInt(gamma, 2);
   epsilon = parseInt(epsilon, 2);
 
@@ -53,6 +54,7 @@ const part2 = (input) => {
   let oxygen = helper(binaries, true, 0);
   let co2 = helper(binaries, false, 0);
 
+  // Parse binary to decimal
   oxygen = parseInt(oxygen, 2);
   co2 = parseInt(co2, 2);
 
