@@ -43,34 +43,38 @@ const part2 = (input) => {
   const lines = input.split(/\r?\n/);
   let numUniqueSegments = 0;
 
+  let total = 0;
   for (const line of lines) {
     const lineSplit = line.split("|");
     const patterns = lineSplit[0].trim().split(" ");
-    solveSegments(patterns);
+    const results = solveSegments(patterns);
 
     const output = lineSplit[1].trim().split(" ");
 
-    for (const num of output) {
-      if ([2, 3, 4, 7].includes(num.length)) {
-        numUniqueSegments++;
+    let numStr = "";
+    for (let num of output) {
+      num = num.split("");
+      for (const resultNum in results) {
+        var a = new Set(num);
+        var b = new Set(results[resultNum]);
+        const areSetsEqual =
+          a.size === b.size && [...a].every((value) => b.has(value));
+
+        if (areSetsEqual) {
+          numStr += resultNum;
+        }
       }
     }
+
+    total += parseInt(numStr);
   }
 
-  return numUniqueSegments;
+  return total;
 };
 
 const solveSegments = (numbers) => {
-  const solvePossibilities = {
-    a: [],
-    b: [],
-    c: [],
-    d: [],
-    e: [],
-    f: [],
-    g: [],
-  };
-  const numToSegments = {
+  const possibilities = [];
+  const segmentKey = {
     0: ["a", "b", "c", "e", "f", "g"],
     1: ["c", "f"],
     2: ["a", "c", "d", "e", "g"],
@@ -82,57 +86,106 @@ const solveSegments = (numbers) => {
     8: ["a", "b", "c", "d", "e", "f", "g"],
     9: ["a", "b", "c", "d", "f", "g"],
   };
+  const segmentKeyCopy = JSON.parse(JSON.stringify(segmentKey));
 
-  for (let number of numbers) {
-    number = number.split("").map(String);
-    const potentialNumbers = [];
-
-    for (let num in numToSegments) {
-      if (numToSegments[num].length === number.length) {
-        potentialNumbers.push(num);
-      }
-    }
-
-    for (const potentialNum of potentialNumbers) {
-      for (const segment of numToSegments[potentialNum]) {
-        const possibilities = solvePossibilities[segment];
-
-        if (
-          number.length < possibilities.length ||
-          possibilities.length === 0
-        ) {
-          solvePossibilities[segment] = number;
-        }
-      }
+  // Populate array
+  for (const number of numbers) {
+    const numberSegmentArray = number.split("");
+    if (numberSegmentArray.length === 2) {
+      possibilities.push({ number: 1, segments: numberSegmentArray });
+    } else if (numberSegmentArray.length === 3) {
+      possibilities.push({ number: 7, segments: numberSegmentArray });
+    } else if (numberSegmentArray.length === 4) {
+      possibilities.push({ number: 4, segments: numberSegmentArray });
+    } else if (numberSegmentArray.length === 7) {
+      possibilities.push({ number: 8, segments: numberSegmentArray });
+    } else {
+      possibilities.push({ number: null, segments: numberSegmentArray });
     }
   }
 
-  console.log(solvePossibilities);
+  const solves = {};
 
-  let i = 0;
+  // Solve
+  while (Object.keys(solves).length !== 7) {
+    for (const i of possibilities) {
+      for (const j of possibilities) {
+        if (
+          i.segments.length === j.segments.length + 1 &&
+          j.number !== null &&
+          (i.number == null || i.number == 7) // Bruh idk pt 2
+        ) {
+          const diff = i.segments.filter((x) => !j.segments.includes(x));
 
-  while (!isSolved(solvePossibilities)) {
-    for (const segI in solvePossibilities) {
-      const segIPossibilities = solvePossibilities[segI];
-      if (segIPossibilities.length > 1) {
-        for (const segJ in solvePossibilities) {
-          const segJPossibilities = solvePossibilities[segJ];
+          if (diff.length === 1) {
+            for (const number in segmentKey) {
+              const segments = segmentKey[number];
+              if (i.segments.length === segments.length) {
+                const diff2 = segments.filter(
+                  (x) => !segmentKey[j.number].includes(x)
+                );
+                if (diff2.length === 1) {
+                  i.number = number;
+                  solves[diff2[0]] = diff[0];
 
-          if (segIPossibilities.length === segJPossibilities.length + 1) {
-            const diff = segIPossibilities.filter(
-              (x) => !segJPossibilities.includes(x)
-            );
+                  for (const num in segmentKey) {
+                    segmentKey[num] = segmentKey[num].filter(
+                      (item) => item !== diff2[0]
+                    );
+                  }
+                  break;
+                }
+              }
+            }
 
-            if (diff.length === 1) {
-              const correct = [diff[0]];
-              solvePossibilities[segI] = correct;
+            for (const num of possibilities) {
+              num.segments = num.segments.filter((item) => item !== diff[0]);
+            }
+            break;
+          }
+        }
+      }
+    }
 
-              // Remove the element as a possibility in any other array
-              for (const segment in solvePossibilities) {
-                if (segment !== segI) {
-                  solvePossibilities[segment] = solvePossibilities[
-                    segment
-                  ].filter((item) => item !== correct[0]);
+    // Bruh idk
+    for (const possibility of possibilities) {
+      if (possibility.segments.length === 1 && possibility.number === null) {
+        let count = 0;
+        for (const possibility2 of possibilities) {
+          if (
+            possibility2.segments.length === 1 &&
+            possibility.segments[0] === possibility2.segments[0]
+          ) {
+            count++;
+          }
+        }
+
+        if (count === 1) {
+          for (const i in segmentKey) {
+            if (segmentKey[i].length === 1) {
+              let countInner = 0;
+              for (const j in segmentKey) {
+                if (
+                  segmentKey[j].length === 1 &&
+                  segmentKey[i][0] === segmentKey[j][0]
+                ) {
+                  countInner++;
+                }
+              }
+
+              if (countInner === 1) {
+                possibility.number = i;
+                solves[segmentKey[i][0]] = possibility.segments[0];
+
+                for (const num in segmentKey) {
+                  segmentKey[num] = segmentKey[num].filter(
+                    (item) => item !== segmentKey[i][0]
+                  );
+                }
+
+                const frick = possibility.segments[0];
+                for (const num of possibilities) {
+                  num.segments = num.segments.filter((item) => item !== frick);
                 }
               }
             }
@@ -140,22 +193,17 @@ const solveSegments = (numbers) => {
         }
       }
     }
-
-    i++;
-    if (i > 3) {
-      return;
-    }
-
-    console.log(solvePossibilities);
-  }
-};
-
-const isSolved = (solvePossibilities) => {
-  for (const segment in solvePossibilities) {
-    if (solvePossibilities[segment].length !== 1) {
-      return false;
-    }
   }
 
-  return true;
+  const returnMap = {};
+  for (const i in segmentKeyCopy) {
+    const segmentArr = [];
+    for (const segment of segmentKeyCopy[i]) {
+      segmentArr.push(solves[segment]);
+    }
+
+    returnMap[i] = segmentArr;
+  }
+
+  return returnMap;
 };
